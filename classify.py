@@ -98,8 +98,8 @@ CARBON = np.array([
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--landcover", type=str, help="landcover type")
-    parser.add_argument("-s", "--stddev", action="store_true", help="standard deviation")
+    parser.add_argument('-l', '--landcover', type=str, help='landcover type')
+    parser.add_argument('-s', '--stddev', action='store_true', help='standard deviation')
     return parser.parse_args()
 
 
@@ -176,5 +176,5 @@ def main():
     print()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
