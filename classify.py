@@ -3,7 +3,6 @@
 import numpy as np
 import pandas as pd
 import argparse
-from IPython.display import display
 
 LANDCOVER_VALUE_TO_TYPE = {
     0: 'water',
@@ -103,14 +102,33 @@ def get_args():
     return parser.parse_args()
 
 
-def merge_landcover_carbon():
+def convert_type_from_dict_to_numpy(landcover_arg):
+    if landcover_arg is None:
+        type_list = list(LANDCOVER_VALUE_TO_TYPE.items())
+    else:
+
+        # Create a list containing only the landcover arg item
+        type_list = list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover_arg)
+
+        # Create numpy array from list
+    return np.asarray(type_list)
+
+
+def merge_type_landcover(type_np):
+    type_df = pd.DataFrame({'type': type_np[:, 0],
+                            'type_text': type_np[:, -1]})
+    type_df.type = type_df.type.astype(int)
     landcover_df = pd.DataFrame({'x': LANDCOVER[:, 0],
                                  'y': LANDCOVER[:, 1],
                                  'type': LANDCOVER[:, -1]})
+    return type_df.merge(landcover_df, how='left')
+
+
+def merge_type_landcover_carbon(type_landcover_df):
     carbon_df = pd.DataFrame({'x': CARBON[:, 0],
                               'y': CARBON[:, 1],
                               'carbon': CARBON[:, -1]})
-    return landcover_df.merge(carbon_df, how='left').drop(['x', 'y'], axis=1)
+    return type_landcover_df.merge(carbon_df, how='left').drop(['x', 'y', 'type'], axis=1)
 
 
 '''
@@ -127,33 +145,19 @@ def convert_type_from_dict_to_numpy(landcover_arg):
 '''
 
 
-def convert_type_from_dict_to_numpy(landcover_arg):
-    # Create a list containing only the landcover arg item or all the landcover
-    type_list = list((key, item) if (landcover_arg is not None and item == landcover_arg) else item
-                     for key, item in LANDCOVER_VALUE_TO_TYPE.items())
-
-    # Create numpy array from list
-    return np.asarray(type_list)
+def groupby_type(landcover_carbon_type_df):
+    return landcover_carbon_type_df.groupby('type_text')
 
 
-def merge_landcover_carbon_type(type_np, landcover_carbon_df):
-    type_df = pd.DataFrame({'type': type_np[:, 0],
-                            'type_text': type_np[:, -1]})
-    type_df.type = type_df.type.astype(int)
-    return landcover_carbon_df.merge(type_df, how='right').drop(['type'], axis=1)
-
-
-def groupby_type_and_calculate(stddev, landcover_carbon_type):
-    return landcover_carbon_type.groupby("type_text").apply(calculate(stddev))
-
-
-def calculate(stddev):
-    return pd.DataFrame.agg(['mean', 'std']) if stddev else pd.DataFrame.mean()
+def calculate(stddev, landcover_carbon_type_group_df):
+    return (landcover_carbon_type_group_df.agg(['mean', 'std'])
+            if stddev else landcover_carbon_type_group_df.mean()).fillna(0)
 
 
 '''
 def prepare_df_to_display(stddev, landcover_carbon_type_group_df):
     if stddev:
+    
         results_df = landcover_carbon_type_group_df.agg(['mean', 'std'])
         results_df.rename(index=str, columns={results_df.columns[1]: 'Landcover type',
                                               results_df.columns[2]: 'Mean carbon',
@@ -169,11 +173,12 @@ def prepare_df_to_display(stddev, landcover_carbon_type_group_df):
 
 def main():
     args = get_args()
-    landcover_carbon_df = merge_landcover_carbon()
     type_np = convert_type_from_dict_to_numpy(args.landcover)
-    landcover_carbon_type_df = merge_landcover_carbon_type(type_np, landcover_carbon_df)
-    landcover_carbon_type_df = groupby_type_and_calculate(landcover_carbon_type_df)
-    print()
+    type_landcover_df = merge_type_landcover(type_np)
+    type_landcover_carbon_df = merge_type_landcover_carbon(type_landcover_df)
+    type_landcover_carbon_df = groupby_type(type_landcover_carbon_df)
+    type_landcover_carbon_df = calculate(args.stddev, type_landcover_carbon_df)
+    print(type_landcover_carbon_df)
 
 
 if __name__ == '__main__':
