@@ -110,10 +110,10 @@ def merge_landcover_carbon():
     carbon_df = pd.DataFrame({'x': CARBON[:, 0],
                               'y': CARBON[:, 1],
                               'carbon': CARBON[:, -1]})
-    landcover_carbon_df = landcover_df.merge(carbon_df, how='left')
-    return landcover_carbon_df.drop(['x', 'y'], axis=1)
+    return landcover_df.merge(carbon_df, how='left').drop(['x', 'y'], axis=1)
 
 
+'''
 def convert_type_from_dict_to_numpy(landcover_arg):
     if landcover_arg is None:
         type_list = list(LANDCOVER_VALUE_TO_TYPE.items())
@@ -124,17 +124,23 @@ def convert_type_from_dict_to_numpy(landcover_arg):
 
     # Create numpy array from list
     return np.asarray(type_list)
+'''
+
+
+def convert_type_from_dict_to_numpy(landcover_arg):
+    # Create a list containing only the landcover arg item or all the landcover
+    type_list = list((key, item) if (landcover_arg is not None and item == landcover_arg) else item
+                     for key, item in LANDCOVER_VALUE_TO_TYPE.items())
+
+    # Create numpy array from list
+    return np.asarray(type_list)
 
 
 def merge_landcover_carbon_type(type_np, landcover_carbon_df):
     type_df = pd.DataFrame({'type': type_np[:, 0],
                             'type_text': type_np[:, -1]})
     type_df.type = type_df.type.astype(int)
-    return landcover_carbon_df.merge(type_df, how='right')
-
-
-def remove_type_column(landcover_carbon_type_df):
-    return landcover_carbon_type_df.drop(['type'], axis=1)
+    return landcover_carbon_df.merge(type_df, how='right').drop(['type'], axis=1)
 
 
 def groupby_type_and_calculate(stddev, landcover_carbon_type):
@@ -166,7 +172,6 @@ def main():
     landcover_carbon_df = merge_landcover_carbon()
     type_np = convert_type_from_dict_to_numpy(args.landcover)
     landcover_carbon_type_df = merge_landcover_carbon_type(type_np, landcover_carbon_df)
-    landcover_carbon_type_df = remove_type_column(landcover_carbon_type_df)
     landcover_carbon_type_df = groupby_type_and_calculate(landcover_carbon_type_df)
     print()
 
