@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Ecometrica programming exercise"""
-import numpy as np
-import pandas as pd
 import argparse
 import sys
+import numpy as np
+import pandas as pd
+import tabulate as tabulate
 
 LANDCOVER_VALUE_TO_TYPE = {
     0: 'water',
@@ -155,6 +156,11 @@ def calculate(stddev, landcover_carbon_type_group_df):
             if stddev else landcover_carbon_type_group_df.mean()).fillna(0)
 
 
+def print_tabulate(stddev, type_landcover_carbon_df):
+    headers = ['Landcover Type', 'Mean carbon', 'SD carbon'] if stddev else ['Landcover Type', 'Mean carbon']
+    print(tabulate.tabulate(type_landcover_carbon_df, headers=headers))
+
+
 def main():
     args = get_args()
     type_np = convert_type_from_dict_to_numpy(args.landcover)
@@ -162,8 +168,7 @@ def main():
     type_landcover_carbon_df = merge_type_landcover_carbon(type_landcover_df)
     type_landcover_carbon_df = groupby_type(type_landcover_carbon_df)
     type_landcover_carbon_df = calculate(args.stddev, type_landcover_carbon_df)
-    print(type_landcover_carbon_df)
-
+    print_tabulate(args.stddev, type_landcover_carbon_df)
 
 
 if __name__ == '__main__':
