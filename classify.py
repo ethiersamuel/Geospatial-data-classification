@@ -146,20 +146,6 @@ def merge_type_landcover_carbon(type_landcover_df):
     return type_landcover_df.merge(carbon_df, how='left').drop(['x', 'y', 'type'], axis=1)
 
 
-'''
-def convert_type_from_dict_to_numpy(landcover_arg):
-    if landcover_arg is None:
-        type_list = list(LANDCOVER_VALUE_TO_TYPE.items())
-    else:
-
-        # Create a list containing only the landcover arg item
-        type_list = list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover_arg)
-
-    # Create numpy array from list
-    return np.asarray(type_list)
-'''
-
-
 def groupby_type(landcover_carbon_type_df):
     return landcover_carbon_type_df.groupby('type_text', sort=False)
 
@@ -167,23 +153,6 @@ def groupby_type(landcover_carbon_type_df):
 def calculate(stddev, landcover_carbon_type_group_df):
     return (landcover_carbon_type_group_df.agg(['mean', 'std'])
             if stddev else landcover_carbon_type_group_df.mean()).fillna(0)
-
-
-'''
-def prepare_df_to_display(stddev, landcover_carbon_type_group_df):
-    if stddev:
-    
-        results_df = landcover_carbon_type_group_df.agg(['mean', 'std'])
-        results_df.rename(index=str, columns={results_df.columns[1]: 'Landcover type',
-                                              results_df.columns[2]: 'Mean carbon',
-                                              results_df.columns[3]: 'Std carbon'})
-    else:
-        results_df = landcover_carbon_type_group_df.mean()
-        print(results_df)
-
-    # Fill nan with 0
-    return results_df.fillna(0)
-'''
 
 
 def main():
