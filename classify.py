@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Ecometrica programming exercise"""
 import argparse
-import sys
+from sys import exit
 import numpy as np
 import pandas as pd
-import tabulate as tabulate
+from tabulate import tabulate
 
 LANDCOVER_VALUE_TO_TYPE = {
     0: 'water',
@@ -116,7 +116,7 @@ def convert_type_from_dict_to_numpy(landcover_arg):
         # Create a list containing only the landcover arg item
         type_list = list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover_arg)
     else:
-        sys.exit('The landcover type %s is not valid.'
+        exit('The landcover type %s is not valid.'
                  '\nPlease, select one in the list below: %s' % (landcover_arg, print_landcover_values()))
 
         # Create numpy array from list
@@ -158,7 +158,7 @@ def calculate(stddev, landcover_carbon_type_group_df):
 
 def print_tabulate(stddev, type_landcover_carbon_df):
     headers = ['Landcover Type', 'Mean carbon', 'SD carbon'] if stddev else ['Landcover Type', 'Mean carbon']
-    print(tabulate.tabulate(type_landcover_carbon_df, headers=headers))
+    print(tabulate(type_landcover_carbon_df, headers=headers))
 
 
 def main():
