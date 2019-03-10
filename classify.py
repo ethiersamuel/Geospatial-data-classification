@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import argparse
+import sys
 
 LANDCOVER_VALUE_TO_TYPE = {
     0: 'water',
@@ -102,16 +103,30 @@ def get_args():
     return parser.parse_args()
 
 
+def validate_landcover(landcover):
+    return landcover in LANDCOVER_VALUE_TO_TYPE.values()
+
+
 def convert_type_from_dict_to_numpy(landcover_arg):
     if landcover_arg is None:
         type_list = list(LANDCOVER_VALUE_TO_TYPE.items())
-    else:
+    elif validate_landcover(landcover_arg):
 
         # Create a list containing only the landcover arg item
         type_list = list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover_arg)
+    else:
+        sys.exit('The landcover type %s is not valid.'
+                 '\nPlease, select one in the list below: %s' % (landcover_arg, print_landcover_values()))
 
         # Create numpy array from list
     return np.asarray(type_list)
+
+
+def print_landcover_values():
+    values = ''
+    for value in LANDCOVER_VALUE_TO_TYPE.values():
+        values += '\n - ' + value
+    return values
 
 
 def merge_type_landcover(type_np):
@@ -179,6 +194,7 @@ def main():
     type_landcover_carbon_df = groupby_type(type_landcover_carbon_df)
     type_landcover_carbon_df = calculate(args.stddev, type_landcover_carbon_df)
     print(type_landcover_carbon_df)
+
 
 
 if __name__ == '__main__':
