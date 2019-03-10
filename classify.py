@@ -161,7 +161,7 @@ def convert_type_from_dict_to_numpy(landcover_arg):
 
 
 def groupby_type(landcover_carbon_type_df):
-    return landcover_carbon_type_df.groupby('type_text')
+    return landcover_carbon_type_df.groupby('type_text', sort=False)
 
 
 def calculate(stddev, landcover_carbon_type_group_df):
