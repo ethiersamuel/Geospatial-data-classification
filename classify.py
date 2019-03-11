@@ -210,10 +210,10 @@ def process_calculation_by_type(stddev, landcover_carbon_type_df):
     :return: GroupByDataFrame of landcover type, landcover, and carbon
     '''
     return landcover_carbon_type_df.groupby('type', sort=False)\
-        .agg(calculate(stddev)).fillna(0)
+        .agg(create_list_of_formula(stddev)).fillna(0)
 
 
-def calculate(stddev):
+def create_list_of_formula(stddev):
     '''
     Create a list of formula.
     :param stddev: String of the stddev command line argument
