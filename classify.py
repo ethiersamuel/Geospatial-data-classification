@@ -99,13 +99,14 @@ CARBON = np.array([
 def get_args():
     '''
     Get the command line arguments.
-    :return: Arguments parse
+    :return: ArgumentParser
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--landcover', action='store', nargs='*', type=str, help='landcover type')
-    parser.add_argument('-s', '--stddev', action='store_true', help='standard deviation')
+    parser.add_argument('-l', '--landcover', nargs='*', type=str, help='Landcover type')
+    parser.add_argument('-s', '--stddev', action='store_true', help='Standard deviation')
     args = parser.parse_args()
-    if type(args.landcover) == list: args.landcover = ' '.join(args.landcover)
+    if isinstance(args.landcover, list):
+        args.landcover = ' '.join(args.landcover)
     return args
 
 
@@ -113,7 +114,7 @@ def create_type_np(landcover):
     '''
     Create ndarray of landcover type. Exit the program if the value of landcover
     is not a valid type.
-    :param landcover: Landcover value of the landcover command line argument
+    :param landcover: String of the landcover command line argument
     :return: ndarray of the landcover type
     '''
     if landcover is None:
@@ -127,7 +128,7 @@ def create_type_np(landcover):
 
 def create_landcover_list():
     '''
-    Create a list from the landcover type dictionnay items.
+    Create a list from the landcover type dictionary items.
     :return: List of landcover type
     '''
     return list(LANDCOVER_VALUE_TO_TYPE.items())
@@ -135,8 +136,8 @@ def create_landcover_list():
 
 def validate_landcover(landcover):
     '''
-    Validate that the landcover exist in the landcover type dictionnary.
-    :param landcover: Landcover value of the landcover command line argument
+    Validate that the landcover exist in the landcover type dictionary.
+    :param landcover: String of the landcover command line argument
     :return: Boolean
     '''
     return landcover in LANDCOVER_VALUE_TO_TYPE.values()
@@ -145,7 +146,7 @@ def validate_landcover(landcover):
 def create_specific_landcover_list(landcover):
     '''
     Create a list of the landcover type entered to the command line.
-    :param landcover: Landcover value of the landcover command line argument
+    :param landcover: String of the landcover command line argument
     :return: List of the landcover type
     '''
     return list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover)
@@ -154,7 +155,7 @@ def create_specific_landcover_list(landcover):
 def exit_program(landcover):
     '''
     Stop the program and display a message.
-    :param landcover: Landcover value of the landcover command line argument
+    :param landcover: String of the landcover command line argument
     '''
     exit('The landcover type %s is not valid.'
          '\nPlease, select one in the list below: %s' % (landcover, print_landcover_values()))
@@ -173,49 +174,49 @@ def print_landcover_values():
 
 def create_type_landcover_df(type_np):
     '''
-    Create a dataframe of landcover type and landcover by merging a dataframe of
-    landcover type to a dataframe of landcover.
+    Create a data frame of landcover type and landcover by merging a data frame of
+    landcover type to a data frame of landcover.
     :param type_np: ndarray of landcover type
-    :return: Dataframe of landcover type and landcover
+    :return: DataFrame of landcover type and landcover
     '''
-    type_df = pd.DataFrame({'type': type_np[:, 0],
-                            'type_text': type_np[:, -1]})
-    type_df.type = type_df.type.astype(int)
+    type_df = pd.DataFrame({'landcover': type_np[:, 0],
+                            'type': type_np[:, -1]})
+    type_df.landcover = type_df.landcover.astype(int)
     landcover_df = pd.DataFrame({'x': LANDCOVER[:, 0],
                                  'y': LANDCOVER[:, 1],
-                                 'type': LANDCOVER[:, -1]})
+                                 'landcover': LANDCOVER[:, -1]})
     return type_df.merge(landcover_df, how='left')
 
 
 def create_type_landcover_carbon_df(type_landcover_df):
     '''
-    Create a dataframe of landcover type, landcover and carbon by merging a dataframe of
-    landcover type and landcover to a dataframe of carbon.
-    :param type_landcover_df: Dataframe of landcover type and landcover
-    :return: Dataframe of landcover type, landcover and carbon
+    Create a data frame of landcover type, landcover and carbon by merging a data frame of
+    landcover type and landcover to a data frame of carbon.
+    :param type_landcover_df: DataFrame of landcover type and landcover
+    :return: DataFrame of landcover type, landcover and carbon
     '''
     carbon_df = pd.DataFrame({'x': CARBON[:, 0],
                               'y': CARBON[:, 1],
                               'carbon': CARBON[:, -1]})
-    return type_landcover_df.merge(carbon_df, how='left').drop(['x', 'y', 'type'], axis=1)
+    return type_landcover_df.merge(carbon_df, how='left').drop(['x', 'y', 'landcover'], axis=1)
 
 
 def process_calculation_by_type(stddev, landcover_carbon_type_df):
     '''
     Group the data by landcover type to calculate the mean and
     stddev by landcover type.
-    :param stddev: Stddev value of the stddev command line argument
-    :param landcover_carbon_type_df: Dataframe of landcover type, landcover and carbon
-    :return: GroupByDataframe of landcover type, landcover and carbon
+    :param stddev: String of the stddev command line argument
+    :param landcover_carbon_type_df: DataFrame of landcover type, landcover, and carbon
+    :return: GroupByDataFrame of landcover type, landcover, and carbon
     '''
-    return landcover_carbon_type_df.groupby('type_text', sort=False)\
+    return landcover_carbon_type_df.groupby('type', sort=False)\
         .agg(calculate(stddev)).fillna(0)
 
 
 def calculate(stddev):
     '''
-    Create a list of the formula.
-    :param stddev: Stddev value of the stddev command line argument
+    Create a list of formula.
+    :param stddev: String of the stddev command line argument
     :return: List of formula
     '''
     return ['mean', lambda x: np.std(x, ddof=0)] if stddev else ['mean']
@@ -223,9 +224,9 @@ def calculate(stddev):
 
 def print_tabulate(stddev, type_landcover_carbon_df):
     '''
-    Print a tabulate of the dataframe.
-    :param stddev: Stddev value of the stddev command line argument
-    :param type_landcover_carbon_df: GroupByDataframe of landcover type, landcover and carbon
+    Print a tabulate of the data frame.
+    :param stddev: String of the stddev command line argument
+    :param type_landcover_carbon_df: GroupByDataFrame of landcover type, landcover, and carbon
     '''
     headers = create_headers_list(stddev)
     print(tabulate(type_landcover_carbon_df, headers=headers))
@@ -233,8 +234,8 @@ def print_tabulate(stddev, type_landcover_carbon_df):
 
 def create_headers_list(stddev):
     '''
-    Create a list of column header.
-    :param stddev: Stddev value of the stddev command line argument
+    Create a list of the column header.
+    :param stddev: String of the stddev command line argument
     :return: List of column header
     '''
     return ['Landcover Type', 'Mean carbon', 'SD carbon'] \
@@ -242,7 +243,7 @@ def create_headers_list(stddev):
 
 
 def main():
-    ''' Execute the main functionnlity. '''
+    ''' Execute the main functionalities. '''
     args = get_args()
     type_np = create_type_np(args.landcover)
     type_landcover_df = create_type_landcover_df(type_np)
