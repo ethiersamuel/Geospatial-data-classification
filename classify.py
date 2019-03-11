@@ -102,9 +102,11 @@ def get_args():
     :return: Arguments parse
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--landcover', nargs='+', help='landcover type')
+    parser.add_argument('-l', '--landcover', action='store', nargs='*', type=str, help='landcover type')
     parser.add_argument('-s', '--stddev', action='store_true', help='standard deviation')
-    return parser.parse_args()
+    args = parser.parse_args()
+    if type(args.landcover) == list: args.landcover = ' '.join(args.landcover)
+    return args
 
 
 def create_type_np(landcover):
@@ -128,7 +130,7 @@ def create_landcover_list():
     Create a list from the landcover type dictionnay items.
     :return: List of landcover type
     '''
-    return [LANDCOVER_VALUE_TO_TYPE.items()]
+    return list(LANDCOVER_VALUE_TO_TYPE.items())
 
 
 def validate_landcover(landcover):
@@ -146,7 +148,7 @@ def create_specific_landcover_list(landcover):
     :param landcover: Landcover value of the landcover command line argument
     :return: List of the landcover type
     '''
-    return [(key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover]
+    return list((key, item) for key, item in LANDCOVER_VALUE_TO_TYPE.items() if item == landcover)
 
 
 def exit_program(landcover):
@@ -216,7 +218,7 @@ def calculate(stddev):
     :param stddev: Stddev value of the stddev command line argument
     :return: List of formula
     '''
-    return ['mean', 'std'] if stddev else ['mean']
+    return ['mean', lambda x: np.std(x, ddof=0)] if stddev else ['mean']
 
 
 def print_tabulate(stddev, type_landcover_carbon_df):
